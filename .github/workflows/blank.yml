@@ -1,0 +1,38 @@
+name: Build LÖVE Game
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install LÖVE
+        run: |
+          sudo add-apt-repository ppa:bartbes/love-stable -y
+          sudo apt-get update
+          sudo apt-get install love -y
+      
+      - name: Package .love file
+        run: |
+          zip -r game.love . -x ".git/*" -x ".github/*" -x "*.zip"
+      
+      - name: Build Windows .exe
+        run: |
+          wget https://github.com/love2d/love/releases/download/11.5/love-11.5-win64.zip
+          unzip love-11.5-win64.zip
+          cat love-11.5-win64/love.exe game.love > mygame.exe
+          cp love-11.5-win64/*.dll .
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: mygame-windows
+          path: |
+            mygame.exe
+            *.dll
+            license.txt
